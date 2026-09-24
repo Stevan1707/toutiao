@@ -4,7 +4,7 @@ from starlette import status
 
 from config.db_conf import get_database_session
 from crud.users import get_user_by_username, create_user, create_token
-from schemas.users import UserRequest
+from schemas.users import UserRequest, UserAuthResponse, UserInfoResponse
 
 router = APIRouter(prefix="/api/users", tags=["users"] )
 
@@ -21,12 +21,16 @@ async def register(user_data : UserRequest, db_session : AsyncSession = Depends(
 
     # 3.返回token 4.返回用户数据
     token = await create_token(db_session, new_user)
-    return {
-        "code": 200,
-        "message": "注册成功",
-        "data":{
-            "token": token ,
-            "user_name": user_data.username,
-            "user_password" : user_data.password
-        }
-    }
+
+    # return {
+    #     "code": 200,
+    #     "message": "注册成功",
+    #     "data":{
+    #         "token": token ,
+    #         "user_name": user_data.username,
+    #         "user_password" : user_data.password
+    #     }
+    # }
+
+    response_data = UserAuthResponse(token=token, userInfo = UserInfoResponse.model_validate(new_user))
+    return response_data
