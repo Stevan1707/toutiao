@@ -63,3 +63,16 @@ async def authenticate_user( user: UserRequest, db_session: AsyncSession):
 
     return user
 
+async def get_user_by_token(user_token: str, db_session: AsyncSession):
+    """根据token查询用户"""
+    query = select(UserToken).where(UserToken.token == user_token)
+    result = await db_session.execute(query)
+    token = result.scalar_one_or_none()
+    if not token or token.expires_at < datetime.datetime.now():
+        return None
+
+    stmt = select(User).where(User.id == token.user_id)
+    result = await db_session.execute(stmt)
+    user = result.scalar_one_or_none()
+    return user
+

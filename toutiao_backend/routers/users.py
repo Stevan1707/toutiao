@@ -6,9 +6,10 @@ from starlette import status
 from config.db_conf import get_database_session
 from crud.users import get_user_by_username, create_user, create_token, authenticate_user
 from schemas.users import UserRequest, UserAuthResponse, UserInfoResponse
+from utils.auth import get_current_user
 from utils.response import success_response
 
-router = APIRouter(prefix="/api/users", tags=["users"] )
+router = APIRouter(prefix="/api/user", tags=["users"] )
 
 @router.post("/register")
 async def register(user_data : UserRequest, db_session : AsyncSession = Depends(get_database_session)):
@@ -52,3 +53,9 @@ async def login(user_data : UserRequest, db_session : AsyncSession = Depends(get
 
     response_data = UserAuthResponse(token=token, userInfo=UserInfoResponse.model_validate(user))
     return success_response( message="登录成功" , data=response_data)
+
+@router.get("/info")
+async def get_user_info(user = Depends(get_current_user)):
+    """获取用户信息"""
+    return_data = UserInfoResponse.model_validate(user)
+    return success_response( message="获取用户信息成功" , data=return_data)
