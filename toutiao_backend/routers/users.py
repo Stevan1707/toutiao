@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from config.db_conf import get_database_session
-from crud.users import get_user_by_username, create_user, create_token, authenticate_user, update_user as crud_update_user
+from crud.users import get_user_by_username, create_user, create_token, authenticate_user, update_user as crud_update_user, change_password
 from models.users import User
-from schemas.users import UserRequest, UserAuthResponse, UserInfoResponse, UserUpdateRequest
+from schemas.users import UserRequest, UserAuthResponse, UserInfoResponse, UserUpdateRequest, UserChangePasswordRequest
 from utils.auth import get_current_user
 from utils.response import success_response
 
@@ -66,3 +66,13 @@ async def update_user(user_data: UserUpdateRequest, user: User =Depends(get_curr
     """更新用户信息"""
     updated_user = await crud_update_user(db_session, user.username, user_data)
     return success_response(message="更新用户信息成功", data=UserInfoResponse.model_validate(updated_user))
+
+@router.put("/password")
+async def update_password(
+        password_data: UserChangePasswordRequest,
+        user: User = Depends(get_current_user),
+        db_session: AsyncSession = Depends(get_database_session)):
+    res_change_pwd = await change_password(db_session, user, password_data.old_password, password_data.new_password)
+    if not res_change_pwd:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="修改密码失败，请稍后再试")
+    return success_response(message="修改密码成功")
