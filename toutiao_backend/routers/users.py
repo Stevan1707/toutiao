@@ -1,15 +1,18 @@
+from docs.conf import author
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from config.db_conf import get_database_session
-from crud.users import get_user_by_username, create_user, create_token
+from crud.users import get_user_by_username, create_user, create_token, authenticate_user
 from schemas.users import UserRequest, UserAuthResponse, UserInfoResponse
+from utils.response import success_response
 
 router = APIRouter(prefix="/api/users", tags=["users"] )
 
 @router.post("/register")
 async def register(user_data : UserRequest, db_session : AsyncSession = Depends(get_database_session)):
+    """用户注册"""
     # 注册逻辑： 1.验证用户是否存在 2.将用户信息存储到数据库 3.返回token 4.返回用户数据
     # 1.验证用户是否存在
     existing_user = await get_user_by_username(db_session, user_data.username)
@@ -33,4 +36,19 @@ async def register(user_data : UserRequest, db_session : AsyncSession = Depends(
     # }
 
     response_data = UserAuthResponse(token=token, userInfo = UserInfoResponse.model_validate(new_user))
-    return response_data
+    return success_response( message="注册成功" , data=response_data)
+
+
+@router.post("/login")
+async def login(user_data : UserRequest, db_session : AsyncSession = Depends(get_database_session)):
+    """用户登录"""
+    # 登录逻辑： 1.验证用户是否存在 2.验证密码是否正确 3.返回token 4.返回用户数据
+    user = await get_user_by_username(db_session, user_data.username)
+    if not user:
+        return None
+    if not authenticate_user(user,db_session):
+        return None
+    token = await create_token(db_session, user)
+
+    response_data = UserAuthResponse(token=token, userInfo=UserInfoResponse.model_validate(user))
+    return success_response( message="登录成功" , data=response_data)
