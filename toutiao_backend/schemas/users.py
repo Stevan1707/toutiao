@@ -34,3 +34,10 @@ class UserAuthResponse(BaseModel):
         "populate_by_name": True  # 别名、字段名兼容
     }
 
+class UserUpdateRequest(UserInfoBase):
+    nickname : str = None
+    avatar: str = None
+    gender: str = None
+    bio: str = None
+    phone: str = None
+
