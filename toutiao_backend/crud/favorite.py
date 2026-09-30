@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.favorite import Favorite
@@ -25,3 +25,15 @@ async def add_favorite(
     await db_session.commit()
     await db_session.refresh(favorite)
     return favorite
+
+
+async def remove_favorite(
+        db_session: AsyncSession,
+        user_id: int,
+        news_id: int,
+):
+    """删除收藏"""
+    stmt = delete(Favorite).where(Favorite.user_id == user_id, Favorite.news_id == news_id)
+    result = await db_session.execute(stmt)
+    await db_session.commit()
+    return result

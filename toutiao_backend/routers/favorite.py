@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi import Query
 from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,3 +32,16 @@ async def add_favorite(
     """添加收藏"""
     result = await favorite.add_favorite(db_session, user.id, data.news_id)
     return success_response(message= "添加收藏成功", data= result)
+
+@router.delete("/remove")
+async def remove_favorite(
+        news_id :int = Query(..., alias= "newsId"),
+        user : User = Depends(get_current_user) ,
+        db_session : AsyncSession = Depends(get_database_session)
+):
+    """删除收藏"""
+    result = await favorite.remove_favorite(db_session, user.id, news_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="收藏不存在")
+
+    return success_response(message= "删除收藏成功", data= result)
