@@ -45,3 +45,12 @@ async def delete_history(
     """删除历史记录"""
     await history.delete_history(db_session, user.id, history_id)
     return success_response(message="删除浏览历史成功")
+
+@router.delete("/clear")
+async def clear_history(
+        user : User = Depends(get_current_user),
+        db_session : AsyncSession = Depends(get_database_session)
+):
+    """清空历史记录"""
+    count = await history.clear_history(db_session, user.id)
+    return success_response(message=f"清空了{count}条浏览历史")

@@ -50,3 +50,13 @@ async def delete_history(db: AsyncSession, user_id: int, news_id: int):
     await db.commit()
 
     return result.rowcount > 0
+
+async def clear_history(db_session: AsyncSession, user_id: int):
+    """清空全部历史记录"""
+    stmt = delete(History).where(History.user_id == user_id)
+    result = await db_session.execute(stmt)
+    await db_session.commit()
+    count = result.rowcount
+
+    return count or 0
+
