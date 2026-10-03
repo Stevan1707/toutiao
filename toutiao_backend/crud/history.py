@@ -1,4 +1,5 @@
-from sqlalchemy import select, func
+from fastapi import HTTPException
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.history import History
@@ -26,7 +27,7 @@ async def get_history_list(
 
     offset = (page - 1) * page_size
     query = (
-        select(News, History.view_time.label("viewTime"))
+        select(News, History.id.label("historyId"), History.view_time.label("viewTime"))
         .join(History, News.id == History.news_id)
         .where(History.user_id == user_id)
         .order_by(History.view_time.desc())
@@ -39,3 +40,13 @@ async def get_history_list(
     # 如果select里面有两个表的东西则不能用scalars_all(),仅能用all()
 
     return total, news_list
+
+
+async def delete_history(db: AsyncSession, user_id: int, news_id: int):
+    """删除单条历史记录"""
+    query = delete(History).where(History.user_id == user_id, History.news_id == news_id)  # 删的是新闻不是存储在History表格内的id
+
+    result = await db.execute(query)
+    await db.commit()
+
+    return result.rowcount > 0

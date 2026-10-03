@@ -31,7 +31,17 @@ async def get_history_list(
 ):
     """获取历史记录列表"""
     total, news_list = await history.get_history_list(db_session, user.id, page, page_size)
-    history_list = [{**n.__dict__, "viewTime": vt} for n, vt in news_list]  # 不仅news要从newslist里获取，view_time也要从newslist里获取
+    history_list = [{**news.__dict__, "viewTime": vt} for news, vt in news_list]
     has_more = total > page * page_size
     data = HistoryListResponse(list=history_list, total=total, hasMore=has_more)
     return success_response(message="获取浏览历史成功", data=data)
+
+@router.delete("/delete/{history_id}")
+async def delete_history(
+        history_id : int,
+        user : User = Depends(get_current_user),
+        db_session : AsyncSession = Depends(get_database_session)
+):
+    """删除历史记录"""
+    await history.delete_history(db_session, user.id, history_id)
+    return success_response(message="删除浏览历史成功")
