@@ -3,21 +3,29 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from starlette import status
-# 开发模式：返回详细错误信息
-# ⽣产模式：返回简化错误信息
-DEBUG_MODE = True # 教学项⽬保持开启
+
+DEBUG_MODE = True
+
+
+def _cors_headers(request: Request) -> dict:
+    origin = request.headers.get("origin", "*")
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+
+
 async def http_exception_handler(request: Request, exc: HTTPException):
-    """
-    处理 HTTPException 异常
-    """
-    # HTTPException 通常是业务逻辑主动抛出的，data 保持 None
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "code": exc.status_code,
             "message": exc.detail,
-            "data": None
-        }
+            "data": None,
+        },
+        headers=_cors_headers(request),
     )
 async def integrity_error_handler(request: Request, exc: IntegrityError):
     """
@@ -44,9 +52,12 @@ async def integrity_error_handler(request: Request, exc: IntegrityError):
         content={
             "code": 400,
             "message": detail,
-            "data": error_data
-        }
+            "data": error_data,
+        },
+        headers=_cors_headers(request),
     )
+
+
 async def sqlalchemy_error_handler(request: Request, exc: SQLAlchemyError
 ):
     """
@@ -66,9 +77,12 @@ async def sqlalchemy_error_handler(request: Request, exc: SQLAlchemyError
         content={
             "code": 500,
             "message": "数据库操作失败，请稍后重试",
-            "data": error_data
-        }
+            "data": error_data,
+        },
+        headers=_cors_headers(request),
     )
+
+
 async def general_exception_handler(request: Request, exc: Exception):
     """
     处理所有未捕获的异常
@@ -88,6 +102,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         content={
             "code": 500,
             "message": "服务器内部错误",
-            "data": error_data
-        }
+            "data": error_data,
+        },
+        headers=_cors_headers(request),
     )

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
+from fastapi.params import Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.db_conf import get_database_session
 from crud import history
 from models.users import User
-from schemas.history import HistoryAddRequest
+from schemas.history import HistoryAddRequest, HistoryListResponse
 from utils.auth import get_current_user
 from utils.response import success_response
 
@@ -21,3 +22,16 @@ async def add_history(
     return success_response(message="添加浏览历史成功", data=result)
 
 
+@router.get("/list")
+async def get_history_list(
+        page : int = 1,
+        page_size : int = Query(10, ge=1, le=100, alias="pageSize"),
+        user : User = Depends(get_current_user),
+        db_session : AsyncSession = Depends(get_database_session)
+):
+    """获取历史记录列表"""
+    total, news_list = await history.get_history_list(db_session, user.id, page, page_size)
+    history_list = [{**n.__dict__, "viewTime": vt} for n, vt in news_list]  # 不仅news要从newslist里获取，view_time也要从newslist里获取
+    has_more = total > page * page_size
+    data = HistoryListResponse(list=history_list, total=total, hasMore=has_more)
+    return success_response(message="获取浏览历史成功", data=data)
