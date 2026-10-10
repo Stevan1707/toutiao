@@ -1,0 +1,19 @@
+# 环境变量（包含敏感信息，如API密钥）
+.env.local
+.env.*.local
+
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 操作系统
+.DS_Store
+Thumbs.db
