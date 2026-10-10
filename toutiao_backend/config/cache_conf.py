@@ -12,7 +12,8 @@ redis_client = redis.Redis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     db=REDIS_DB,  # 数据库索引，默认0
-    decode_responses=True)
+    decode_responses=True,
+    protocol=2)  # 强制 RESP2 协议，兼容 Windows 上的 Redis 3.x
 
 
 # 封装读取操作
@@ -47,4 +48,3 @@ async def set_cache(key: str, value: Any, ex: int = 3600):
     except Exception as e:
         print(f"设置缓存失败: {e}")
         return False
-

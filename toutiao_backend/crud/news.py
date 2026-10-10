@@ -1,13 +1,35 @@
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from cache.news_cache import get_cached_category, set_cached_category
 from models.news import Category, News
 from sqlalchemy import select, func, update
 
 
 async def get_categories(db: AsyncSession, skip: int = 0, limit: int = 10):
     """ 获取所有分类列表 """
+
+    # 尝试从缓存中读取：
+    cached_category = await get_cached_category()
+    print(f"[DEBUG] 读取缓存结果: {cached_category}")
+    if cached_category:
+        print("[DEBUG] 命中缓存，直接返回")
+        return cached_category
+    # 如果缓存中没有，从数据库中读取
     stmt = select(Category).order_by(Category.sort_order).offset(skip).limit(limit)
     result = await db.execute(stmt)
-    return result.scalars().all()
+    categories = result.scalars().all()
+    print(f"[DEBUG] 数据库查询到 {len(categories)} 条分类")
+
+    # 写入缓存：
+    if categories:
+        categories = jsonable_encoder(categories)
+        print(f"[DEBUG] jsonable_encoder 后类型: {type(categories)}, 内容: {categories}")
+        result_cache = await set_cached_category(categories)
+        print(f"[DEBUG] 缓存写入结果: {result_cache}")
+
+    # 返回分类列表
+    return categories
 
 async def get_news_list(db: AsyncSession,category_id: int, skip: int = 0, limit: int = 10):
     """ 获取指定分类下的新闻列表 """
