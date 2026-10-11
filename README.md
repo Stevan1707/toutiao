@@ -1,8 +1,8 @@
-# 头条新闻后端服务 (Toutiao Backend)
+# 头条新闻 (Toutiao)
 
 > 本项目为**黑马程序员**指导项目。
 
-基于 FastAPI 构建的新闻资讯 App 后端服务，提供新闻浏览、用户系统、收藏管理、浏览历史、缓存加速等 API。配套前端基于 Vue 3 + Vant 4。
+基于 FastAPI + Vue 3 构建的新闻资讯 App 全栈项目。后端提供新闻浏览、用户系统、收藏管理、浏览历史、缓存加速等 API；前端基于 Vue 3 + Vant 4 构建移动端界面。
 
 ---
 
@@ -13,7 +13,7 @@
 ```
 toutiao/
 ├── toutiao_frontend/     # Vue3 前端（有少量修改）
-└── toutiao_backend/      # FastAPI 后端（本项目）
+└── toutiao_backend/      # FastAPI 后端
 ```
 
 ### 技术栈
