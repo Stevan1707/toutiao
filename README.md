@@ -1,10 +1,18 @@
 # 头条新闻后端服务 (Toutiao Backend)
 
-基于 **FastAPI** 构建的新闻资讯类 App 后端服务，提供新闻浏览、用户系统、收藏管理、浏览历史、缓存加速等功能。
+基于 FastAPI 构建的新闻资讯 App 后端服务，提供新闻浏览、用户系统、收藏管理、浏览历史、缓存加速等 API。配套前端基于 Vue 3 + Vant 4。
 
 ---
 
 ## 项目概览
+
+### 整体架构
+
+```
+toutiao/
+├── toutiao_frontend/     # Vue3 前端（非本人主要负责）
+└── toutiao_backend/      # FastAPI 后端（本项目）
+```
 
 ### 技术栈
 
@@ -17,10 +25,13 @@
 | 认证 | JWT Token |
 | 异步驱动 | aiomysql |
 
+> 配套前端：Vue 3 + Vite + Vue Router + Pinia + Vant 4 + Axios + vue-i18n
+
 ### 项目结构
 
+**后端** `toutiao_backend/`
+
 ```
-toutiao_backend/
 ├── main.py                    # 应用入口，路由挂载
 ├── config/
 │   ├── db_conf.py             # MySQL 数据库配置
@@ -55,6 +66,20 @@ toutiao_backend/
     └── exception_handlers.py  # 全局异常注册
 ```
 
+**前端** `toutiao_frontend/`（简要）
+
+```
+├── src/
+│   ├── components/       # TabBar、NewsItem 等公共组件
+│   ├── views/            # Home、Category、NewsDetail、Login、My 等页面
+│   ├── store/            # Pinia 状态管理（news、user、favorite、history）
+│   ├── router/           # 路由配置
+│   ├── config/           # API 地址 & 千问配置
+│   └── i18n/             # 中英文国际化
+├── vite.config.js
+└── package.json
+```
+
 ---
 
 ## 快速启动
@@ -62,6 +87,7 @@ toutiao_backend/
 ### 环境要求
 
 - Python 3.11+
+- Node.js 18+
 - MySQL 8.0+
 - Redis 3.x+
 
@@ -69,49 +95,44 @@ toutiao_backend/
 
 ```bash
 git clone <your-repo-url>
-cd toutiao_backend
+cd toutiao
 ```
 
-### 2. 创建虚拟环境 & 安装依赖
+### 2. 启动后端
 
 ```bash
+cd toutiao_backend
+
+# 创建虚拟环境 & 安装依赖
 python -m venv .venv
 .venv\Scripts\activate    # Windows
 # source .venv/bin/activate  # macOS/Linux
 
 pip install fastapi uvicorn sqlalchemy aiomysql redis pydantic bcrypt
-```
 
-### 3. 配置数据库
+# 创建数据库
+# mysql -u root -p -e "CREATE DATABASE news_app DEFAULT CHARSET utf8mb4;"
 
-确保 MySQL 已启动，创建数据库：
-
-```sql
-CREATE DATABASE news_app DEFAULT CHARSET utf8mb4;
-```
-
-数据库连接配置在 [config/db_conf.py](file:///D:/Code/toutiao/toutiao_backend/config/db_conf.py#L6)，按需修改：
-
-```python
-ASYNC_DATABASE_URL = "mysql+aiomysql://用户名:密码@localhost:3306/news_app?charset=utf8"
-```
-
-### 4. 配置 Redis
-
-确保 Redis 服务已启动，默认连接 `localhost:6379`，可在 [config/cache_conf.py](file:///D:/Code/toutiao/toutiao_backend/config/cache_conf.py) 中修改。
-
-### 5. 启动服务
-
-```bash
+# 启动服务（默认 8000 端口）
 uvicorn main:app --reload --port 8000
 ```
 
-服务默认运行在 `http://127.0.0.1:8000`。
+### 3. 启动前端
 
-### 6. 访问接口文档
+```bash
+cd toutiao_frontend
 
-- Swagger UI：`http://127.0.0.1:8000/docs`
-- ReDoc：`http://127.0.0.1:8000/redoc`
+# 安装依赖
+npm install
+
+# 启动开发服务器（默认 5173 端口）
+npm run dev
+```
+
+### 4. 访问
+
+- 前端页面：`http://localhost:5173`
+- 后端接口文档：`http://localhost:8000/docs`
 
 ---
 
@@ -139,68 +160,14 @@ uvicorn main:app --reload --port 8000
 
 ---
 
-## 提交记录 & 功能清单
+## 主要工作
 
-以下是本项目从零到一的完整开发历程：
-
-### 🎬 项目初始
-
-| 提交 | 说明 |
-|------|------|
-| `529ac67` | **first commit** — 项目初始化 |
-
-### 🌐 基础设施
-
-| 提交 | 说明 |
-|------|------|
-| `1547791` | **跨域 CORS 配置** — 解决前后端分离的跨域问题，支持 `allow_credentials=True` |
-| `c83dfd1` | **全局异常处理** — 封装 HTTPException、IntegrityError、SQLAlchemyError 等异常的统一处理逻辑 |
-
-### 📰 新闻模块
-
-| 提交 | 说明 |
-|------|------|
-| `fdc74e2` | **新闻列表接口** — 支持按分类分页查询新闻列表，返回 `hasMore` 分页状态 |
-| `193f6b0` | **新闻详情接口** — 返回新闻完整内容，自动更新浏览量，附带相关新闻推荐 |
-
-### 👤 用户模块
-
-| 提交 | 说明 |
-|------|------|
-| `574bdb3` | **用户注册接口** — 支持用户名/密码注册，返回 JWT Token |
-| `526a7cb` | **统一响应格式** — 封装 `success_response` 统一 API 返回结构 |
-| `f8cedf6` | **用户登录接口** — 密码验证 + Token 签发 |
-| `6e784ad` | **用户信息验证** — 根据 Token 获取当前用户信息（`GET /info`） |
-| `4db979e` | **更新个人信息** — 支持修改用户昵称等个人资料 |
-| `d5e1a67` | **修改密码** — 验证旧密码后更新为新密码 |
-
-### ⭐ 收藏模块
-
-| 提交 | 说明 |
-|------|------|
-| `69ecc76` | **检查收藏状态** — 判断某条新闻是否已被当前用户收藏 |
-| `7b685e1` | **添加收藏** — 将新闻加入用户收藏列表 |
-| `9f6ae7c` | **删除收藏** — 从收藏列表中移除指定新闻 |
-| `84af160` | **获取收藏列表** — 分页查询用户收藏，关联新闻详情 |
-| `717a5bc` | **清空收藏列表** — 一键清空所有收藏记录 |
-
-### 📝 浏览历史模块
-
-| 提交 | 说明 |
-|------|------|
-| `786e0aa` | **添加浏览记录** — 用户查看新闻时自动记录浏览历史 |
-| `48784e7` | **获取浏览历史列表** — 分页查询浏览历史，关联新闻信息 |
-| `9c4e6f3` | **获取浏览记录列表**（补充优化） |
-| `ba6d371` | **清空所有浏览记录** — 支持一键清除 |
-
-### ⚡ 缓存加速
-
-| 提交 | 说明 |
-|------|------|
-| `30ba337` | **Redis 缓存基础组件** — 封装 `get_cache` / `set_cache`，支持字符串和 JSON 格式 |
-| `0a993da` | **新闻分类缓存** — 分类数据（稳定性高）缓存 2 小时 |
-| `2b406f1` | **新闻列表缓存** — 按分类+分页维度缓存新闻列表数据 |
-| `83a37fd` | **千问模型聊天功能** — 调用通义千问 AI 模型的聊天对话能力 |
+- **项目初始化**：搭建 FastAPI 项目骨架，配置 CORS 跨域支持
+- **新闻模块**：实现新闻分类列表、新闻列表分页查询、新闻详情（含浏览量统计与相关推荐）
+- **用户模块**：实现注册/登录、JWT Token 认证、个人信息修改、密码修改，封装统一响应格式与全局异常处理
+- **收藏模块**：实现收藏的增删查改与一键清空
+- **浏览历史**：实现浏览记录的自动添加、分页查询、单条删除与一键清空
+- **缓存加速**：引入 Redis，对新闻分类和列表做多级缓存，并集成通义千问 AI 聊天功能
 
 ---
 
@@ -209,5 +176,5 @@ uvicorn main:app --reload --port 8000
 - **异步全链路**：FastAPI + SQLAlchemy Async + aiomysql，充分利用异步 IO 提升并发性能
 - **多级缓存策略**：Redis 缓存新闻分类（长周期）和新闻列表（短周期），大幅减少数据库压力
 - **统一异常处理**：全局注册各类异常处理器，接口层无需重复 try-catch
-- **JWT 认证**：Header 中携带 Token，通过 `Depends(get_current_user)` 依赖注入方式保护接口
+- **JWT 认证**：Header Token + Depends 依赖注入方式保护接口
 - **分层架构**：Router → CRUD → Model 清晰的三层架构，职责分离，易于维护
