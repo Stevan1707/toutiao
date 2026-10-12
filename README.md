@@ -26,7 +26,7 @@ toutiao/
 | 缓存 | Redis |
 | 认证 | JWT Token |
 | 异步驱动 | aiomysql |
-
+ 
 > 配套前端：Vue 3 + Vite + Vue Router + Pinia + Vant 4 + Axios + vue-i18n
 
 ### 项目结构
